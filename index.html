@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="color-scheme" content="light dark"/>
+<link rel="icon" href="data:,"/>
+<title>Scout Live Demo — Eyes and Voice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f1ea; --bg2:#ece7dc; --card:#fffdf8; --ink:#12181a; --muted:#5b6668; --line:#ddd6c7;
+  --teal:#0e9b8b; --teal-dark:#087a6d; --amber:#e9a23b; --amber-bg:#fff3d6; --face:#0a0f10; --eye:#67f5e6;
+  --radius:18px;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#0e1213; --bg2:#141a1b; --card:#1a2223; --ink:#eef6f4; --muted:#9ab0ad; --line:#2a3637; --amber-bg:#2e2410; }
+}
+*{box-sizing:border-box}
+html,body{overflow-x:hidden}
+body{margin:0;font-family:Manrope,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+a{color:var(--teal-dark)}
+button,input,select{font:inherit}
+button{min-height:44px;cursor:pointer}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 18px 48px}
+.top{padding:22px 0 8px}
+.top h1{font-size:clamp(28px,5vw,46px);line-height:1.02;letter-spacing:-.02em;margin:0;max-width:700px}
+.top h1 span{color:var(--teal)}
+.top p{color:var(--muted);max-width:640px;margin:12px 0 0;font-size:17px}
+.pill{display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:700;margin-top:14px}
+.dot{width:9px;height:9px;background:#22c07a;border-radius:50%;box-shadow:0 0 0 4px rgba(34,192,122,.18)}
+.grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:18px;margin-top:20px}
+@media(max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;min-width:0;max-width:100%}
+.card p,.card li{overflow-wrap:break-word}
+.card h2{margin:0 0 6px;font-size:19px;letter-spacing:-.01em}
+.card h3{margin:0 0 6px;font-size:16px}
+.small{font-size:13.5px;color:var(--muted)}
+.mono{font-family:"JetBrains Mono",monospace}
+
+/* FACE */
+.face-wrap{background:#0a0f10;border-radius:22px;padding:22px 14px 16px;text-align:center;position:relative;overflow:hidden}
+.face-wrap:before{content:"";position:absolute;inset:0;background:radial-gradient(600px 220px at 50% 0%,rgba(103,245,230,.16),transparent 60%)}
+.face{position:relative;width:min(420px,100%);aspect-ratio:1.35;margin:6px auto 4px;background:#050808;border:2px solid #223233;border-radius:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.eyes{display:flex;gap:52px;align-items:center;justify-content:center;height:110px}
+.eye{width:72px;height:88px;background:var(--eye);border-radius:50%;position:relative;transition:all .25s ease;box-shadow:0 0 28px rgba(103,245,230,.55);overflow:hidden}
+.eye:after{content:"";position:absolute;width:22px;height:22px;background:white;border-radius:50%;top:16px;left:14px;opacity:.9}
+.eye .pupil{position:absolute;width:28px;height:28px;background:#042222;border-radius:50%;left:50%;top:50%;transform:translate(-50%,-50%);transition:transform .2s}
+.face[data-expr="happy"] .eye{height:52px;border-radius:999px 999px 28px 28px}
+.face[data-expr="happy"] .eye:after{display:none}
+.face[data-expr="thinking"] .eye{height:62px}
+.face[data-expr="thinking"] .eye .pupil{transform:translate(-30%,-90%)}
+.face[data-expr="listening"] .eye{width:82px;height:96px}
+.face[data-expr="surprised"] .eye{width:86px;height:100px}
+.face[data-expr="sleepy"] .eye{height:26px}
+.face[data-expr="speaking"] .eye{height:78px}
+.face[data-expr="love"] .eye{background:#ff7a9a;box-shadow:0 0 28px rgba(255,122,154,.6)}
+.face.blink .eye{height:8px !important}
+.mouth{width:56px;height:10px;border-radius:999px;background:var(--eye);transition:all .15s;opacity:.95}
+.face[data-expr="happy"] .mouth{width:64px;height:22px;border-radius:0 0 999px 999px;background:transparent;border:4px solid var(--eye);border-top:0}
+.face[data-expr="speaking"] .mouth{animation:talk .35s infinite alternate}
+@keyframes talk{from{height:6px;width:44px}to{height:22px;width:58px;border-radius:50%}}
+.status{position:relative;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px}
+.status span{background:#162122;color:#bffcf3;border:1px solid #243536;border-radius:999px;padding:6px 10px;font-size:12.5px;font-family:"JetBrains Mono",monospace}
+.expr-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:8px 13px;font-weight:700;font-size:13.5px}
+.chip.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn{border-radius:999px;padding:10px 16px;font-weight:800;border:1px solid var(--line);background:var(--card)}
+.btn.primary{background:var(--teal);color:white;border-color:var(--teal)}
+.btn.dark{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.amber{background:var(--amber);color:#1a1200;border-color:var(--amber)}
+
+/* CHAT */
+.chatlog{height:380px;overflow:auto;border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--bg);display:flex;flex-direction:column;gap:10px}
+.msg{max-width:88%;padding:10px 12px;border-radius:14px;font-size:14.5px;line-height:1.5}
+.msg.scout{background:var(--card);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.you{background:var(--teal);color:white;align-self:flex-end;border-bottom-right-radius:4px}
+.msg small{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;opacity:.65;font-weight:800;margin-bottom:3px}
+.quick{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.quick button{font-size:13px;padding:8px 11px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-weight:700}
+.inputrow{display:flex;gap:8px}
+.inputrow input{flex:1 1 auto;min-width:0;padding:12px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-height:48px}
+.inputrow button{border-radius:999px;padding:0 14px;flex:0 0 auto;white-space:nowrap}
+
+/* SECTIONS BELOW */
+.section{margin-top:18px}
+.voice-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:12px}
+@media(max-width:900px){.voice-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.voice-grid{grid-template-columns:minmax(0,1fr)}}
+.voice{border:1px solid var(--line);border-radius:16px;padding:16px;background:var(--bg)}
+.voice.recommended{border-color:var(--teal);background:color-mix(in srgb,var(--teal) 7%, var(--card))}
+.voice.locked{outline:2px solid var(--teal);outline-offset:2px}
+.voice h3{font-size:17px}
+.tag{font-size:11px;letter-spacing:.07em;text-transform:uppercase;font-weight:800;background:var(--amber-bg);border:1px solid #ecd9a0;color:#7a5a00;padding:4px 7px;border-radius:999px;display:inline-block}
+@media(prefers-color-scheme:dark){.tag{color:#ffd97a}}
+.meter{height:6px;background:var(--line);border-radius:999px;overflow:hidden;margin:8px 0}
+.meter i{display:block;height:100%;background:var(--teal)}
+.voice .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.voice .row button{flex:1;padding:9px 10px;border-radius:999px;font-weight:800;font-size:13.5px}
+.playbtn{background:var(--ink);color:var(--bg);border:1px solid var(--ink)}
+.lockbtn{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.lockbtn.is-locked{background:var(--teal);color:#fff;border-color:var(--teal)}
+
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+@media(max-width:860px){.two{grid-template-columns:minmax(0,1fr)}}
+.memlist{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.memlist li{border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;font-size:14px}
+.memlist li b{color:var(--teal-dark)}
+.empty{border:1.5px dashed var(--line);border-radius:12px;padding:16px;text-align:center;color:var(--muted);font-size:14px}
+.flow{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center;margin-top:14px}
+@media(max-width:700px){.flow{grid-template-columns:minmax(0,1fr)}.flow .arrow{transform:rotate(90deg);justify-self:center}}
+.flowbox{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--bg);text-align:center}
+.flowbox b{display:block;font-size:14px}
+.flowbox span{font-size:12.5px;color:var(--muted)}
+.arrow{font-size:20px;color:var(--teal);font-weight:800}
+.verdict{background:#e6f7f3;border:1px solid #bfe8df;border-radius:14px;padding:14px;margin-top:14px}
+@media(prefers-color-scheme:dark){.verdict{background:#122a27;border-color:#1e4a44}}
+@media(max-width:480px){.eyes{gap:26px}.eye{width:58px;height:72px}.face{gap:4px}}
+.lang-note{display:inline-flex;align-items:center;gap:8px;background:#fdecec;border:1px solid #f2b8b8;color:#8a1f1f;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:800;margin-top:10px;margin-left:8px}
+@media(prefers-color-scheme:dark){.lang-note{background:#331a1a;border-color:#6b2f2f;color:#ffb4b4}}
+.msg.guard{background:#fdecec;border:1px solid #f2b8b8;color:#8a1f1f;align-self:stretch;max-width:100%;font-weight:700}
+@media(prefers-color-scheme:dark){.msg.guard{background:#331a1a;border-color:#6b2f2f;color:#ffb4b4}}
+.sysprompt{background:#0a0f10;color:#bffcf3;border-radius:14px;padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.65;white-space:pre-wrap;word-break:break-word;margin-top:10px}
+.footer{margin-top:20px;color:var(--muted);font-size:13px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Scout, live — <span>eyes, voice &amp; memory</span> in one demo.</h1>
+    <p>Talk to Scout below. His eyes react while he thinks, listens and speaks, he remembers what you tell him in this session, and you can audition four voice characters for Scout's male Nigerian voice before you lock one in.</p>
+    <div class="pill"><span class="dot"></span> LIVE DEMO &nbsp;•&nbsp; <span id="voiceState">No voice locked yet — test them below</span></div><span class="lang-note">🔒 ENGLISH ONLY — Scout speaks English only, always, with a warm male Nigerian accent</span>
+  </header>
+
+  <div class="grid">
+    <!-- FACE -->
+    <section class="card" aria-label="Scout face">
+      <h2>Scout's face — the OLED eyes</h2>
+      <p class="small">Same idea as the Google AI Studio eyes and the LVGL OLED plan: a black screen, two glowing eyes, one mouth. In this demo the browser drives it. On the robot, <span class="mono">EyeBus</span> will drive the real display the same way.</p>
+      <div class="face-wrap">
+        <div class="face" id="face" data-expr="happy">
+          <div class="eyes">
+            <div class="eye"><div class="pupil"></div></div>
+            <div class="eye"><div class="pupil"></div></div>
+          </div>
+          <div class="mouth" id="mouth"></div>
+        </div>
+        <div class="status">
+          <span id="statusExpr">expression = happy</span>
+          <span id="statusSpeak">speaking = false</span>
+          <span id="statusGaze">gaze = centre</span>
+        </div>
+      </div>
+      <p class="small" style="margin-top:12px"><b>Try an expression:</b> tap one and watch the face — Scout also triggers these himself when you chat.</p>
+      <div class="expr-row" id="exprRow">
+        <button class="chip active" data-expr="happy">😊 Happy</button>
+        <button class="chip" data-expr="neutral">😐 Neutral</button>
+        <button class="chip" data-expr="thinking">🤔 Thinking</button>
+        <button class="chip" data-expr="listening">👂 Listening</button>
+        <button class="chip" data-expr="speaking">🗣️ Speaking</button>
+        <button class="chip" data-expr="surprised">😲 Surprised</button>
+        <button class="chip" data-expr="love">🥰 Love</button>
+        <button class="chip" data-expr="sleepy">😴 Sleepy</button>
+      </div>
+      <div class="controls">
+        <button class="btn primary" id="blinkBtn">Blink now</button>
+        <button class="btn" id="lookBtn">Look around</button>
+        <button class="btn" id="spinBtn">Happy spin — beep!</button>
+      </div>
+    </section>
+
+    <!-- CHAT -->
+    <section class="card" aria-label="Chat with Scout">
+      <h2>Talk to Scout</h2>
+      <p class="small">Type or use the mic. Scout answers once per question — no repeating your last question back (that bug from the Python build is fixed in this brain). Tell him facts and then ask him to recall them.</p>
+      <div class="chatlog" id="chatlog" aria-live="polite"></div>
+      <div class="quick" id="quick">
+        <button data-q="Hello Scout, how are you?">👋 Say hello</button>
+        <button data-q="Tell me a joke">😂 Tell a joke</button>
+        <button data-q="Sing me a song">🎵 Sing</button>
+        <button data-q="Who built you?">🛠️ Who built you?</button>
+        <button data-q="Who was Isaac Newton?">🍎 Who was Newton?</button>
+        <button data-q="Let's play the robot parts guessing game">🤖 Parts game</button>
+        <button data-q="What do you remember about me?">🧠 What do you remember?</button>
+      </div>
+      <form class="inputrow" id="chatForm">
+        <input id="chatInput" placeholder="Tell Scout: My name is… / I love… / Remember that…" autocomplete="off"/>
+        <button type="button" class="btn" id="micBtn" title="Speak">🎤</button>
+        <button type="button" class="btn primary" id="sendBtn">Send →</button>
+      </form>
+      <p class="small" id="micNote" style="margin-top:8px">Tip: Try “My favourite colour is teal” — then ask “What is my favourite colour?”</p>
+    </section>
+  </div>
+
+  <!-- VOICE LAB -->
+  <section class="card section" aria-label="Voice lab">
+    <h2>Voice Lab — test Scout's voice characters</h2>
+    <p class="small">You asked for a male Nigerian voice, with options to test before locking one in. Each card below plays the same line in a different tuning of your device's speech voice — pitch, speed and warmth changed to give a distinct character. The names are the real Gemini Live candidates from <span class="mono">voice_test.py</span> in v4, now set to <span class="mono">en-NG</span> with the prompt direction “warm, confident, male Nigerian accent”. Nothing is locked until you tap <b>Lock this voice</b>. After locking, every Scout reply uses that voice.</p>
+    <p class="small" style="background:var(--amber-bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px">Honest note: Gemini has no Nigerian-labelled voice, and a web page can only use voices installed on this device, so these are character tunings, not the final recordings. If none of the Gemini candidates sounds Nigerian enough on the Pi, the next step in v4 is Azure <b>en-NG-AbeoNeural</b> — a true Nigerian male voice.</p>
+    <div id="lockBanner" class="verdict" style="display:none"></div>
+    <div class="voice-grid" id="voiceGrid"></div>
+  </section>
+
+  <div class="two section">
+    <!-- MEMORY -->
+    <section class="card" aria-label="Memory">
+      <h2>🧠 What Scout remembers</h2>
+      <p class="small">This updates live as you talk. Scout pulls facts out of your messages, keeps them, and uses them in later answers — in this same conversation and when you ask him to recall.</p>
+      <div id="memEmpty" class="empty">Nothing yet.<br>Tell Scout your name, something you love, or say “Remember that…”</div>
+      <ul class="memlist" id="memList"></ul>
+      <div class="controls">
+        <button class="btn dark" id="recallBtn">Ask Scout to recall everything</button>
+        <button class="btn" id="clearMemBtn">Forget everything (this session)</button>
+      </div>
+      <p class="small" style="margin-top:10px">Try these, one at a time:<br>1. “My name is Kenneth” &nbsp; 2. “I am building a robot on a Raspberry Pi 5” &nbsp; 3. “My favourite food is jollof rice” &nbsp; 4. Then ask: “What do you remember about me?”</p>
+    </section>
+
+    <!-- PINECONE -->
+    <section class="card" aria-label="Pinecone memory plan">
+      <h2>Would Pinecone help? Yes — but not first.</h2>
+      <p class="small">This demo keeps memory in the page for one session, so you can feel how recall should work. The real Scout v4 already does the local version: <span class="mono">scout_memory.py</span> saves facts to local JSON and conversations to <span class="mono">conversations.jsonl</span>, loaded into the prompt at startup. Say “remember…” / “forget…” to manage it.</p>
+      <div class="flow">
+        <div class="flowbox"><b>💬 Conversation</b><span>“My favourite colour is teal”</span></div><div class="arrow">→</div>
+        <div class="flowbox"><b>💾 Local memory (v4)</b><span>JSON facts + conversation log on the Pi — free, offline, private</span></div><div class="arrow">→</div>
+        <div class="flowbox"><b>🌲 Pinecone (later)</b><span>Cloud vector search when you want sync / scale</span></div>
+      </div>
+      <div class="verdict">
+        <b>Recommended order for Scout on Pi 5 (8 GB — enough):</b>
+        <ul style="margin:8px 0 0;padding-left:18px;font-size:14.5px">
+          <li><b>Start local (now, v4):</b> short-term turns in RAM fix the repeat-answer bug; long-term facts in local JSON survive restarts, work offline, cost nothing.</li>
+          <li><b>Add Chroma locally</b> if you want meaning-based recall (“things I like to eat” finding “jollof”) without any cloud.</li>
+          <li><b>Add Pinecone only for</b> cloud sync across devices or very large memory. Its free Starter is about 2 GB, then roughly $70/month — not worth it while local memory covers the need.</li>
+          <li><b>How Pinecone would work:</b> each memory is embedded into numbers, stored in Pinecone, and the 3–5 closest memories are pulled into the prompt before each reply.</li>
+        </ul>
+      </div>
+      <p class="small" style="margin-top:10px">In short: local memory gives Scout a past today. Pinecone is the upgrade path, not the starting point.</p>
+    </section>
+  </div>
+
+  <section class="card section" aria-label="System prompt">
+  <h2>Scout's Live system prompt — the English-only rule (v4.1)</h2>
+  <p class="small">This is the exact rule that goes at the top of the system prompt for the Gemini Live session on the Pi, with speech language set to <span class="mono">en-NG</span>. Why both? Google's own docs say Live can switch among 97 languages mid-conversation and <span class="mono">language_code</span> mainly sets the accent — so the prompt rule does the locking, and the demo's language guard (below in the chat) catches anything that still slips through.</p>
+  <div class="sysprompt" id="sysPrompt"></div>
+  <p class="small" style="margin-top:10px"><b>Language guard, live in this demo:</b> every Scout reply is checked before it is shown or spoken. If it contains a non-Latin script (for example Hindi, Arabic, Chinese or Cyrillic letters) or clear non-English words, you will see a warning and Scout automatically repeats the reply in English. Try it: type something in Spanish or paste a Hindi sentence — Scout answers in English and asks you to repeat it in English.</p>
+</section>
+
+<p class="footer">Scout — built by Kenneth Samuel, robotics engineer in Lagos. Brain first, hardware second: Raspberry Pi 5 • 8 GB • wheels, Pi Camera, OLED eyes via LVGL. This page is a standalone demo of the eyes, voice and memory working together.</p>
+</div>
+
+<script>
+var face=document.getElementById('face'), statusExpr=document.getElementById('statusExpr'), statusSpeak=document.getElementById('statusSpeak'), statusGaze=document.getElementById('statusGaze');
+var chatlog=document.getElementById('chatlog'), memList=document.getElementById('memList'), memEmpty=document.getElementById('memEmpty');
+function setExpr(e,speaking,gaze){
+  face.dataset.expr=e;
+  statusExpr.textContent='expression = '+e;
+  statusSpeak.textContent='speaking = '+(speaking?'true':'false');
+  if(gaze) statusGaze.textContent='gaze = '+gaze;
+  document.querySelectorAll('#exprRow .chip').forEach(function(c){c.classList.toggle('active',c.dataset.expr===e)});
+}
+document.getElementById('exprRow').addEventListener('click',function(ev){var b=ev.target.closest('[data-expr]');if(!b)return;setExpr(b.dataset.expr,false,'centre'); if(b.dataset.expr==='speaking') speak("That's my speaking face!");});
+setInterval(function(){face.classList.add('blink');setTimeout(function(){face.classList.remove('blink')},160)},3400+Math.random()*1200);
+document.getElementById('blinkBtn').onclick=function(){face.classList.add('blink');setTimeout(function(){face.classList.remove('blink')},180)};
+document.getElementById('lookBtn').onclick=function(){setExpr('listening',false,'tracking'); var pupils=document.querySelectorAll('.pupil'); pupils.forEach(function(p){p.style.transform='translate(30%,-50%)'}); setTimeout(function(){pupils.forEach(function(p){p.style.transform='translate(-110%,-50%)'})},600); setTimeout(function(){pupils.forEach(function(p){p.style.transform='translate(-50%,-50%)'});setExpr('happy',false,'centre')},1300)};
+document.getElementById('spinBtn').onclick=function(){setExpr('happy',false,'centre'); speak("Beep boop! Wheels spinning, exploring new places, making friends all over town!"); addMsg('scout',"Beep boop! *spins in a happy circle* That's my hello when I don't have hands yet — wheels and eyes do the talking.");};
+
+/* VOICES */
+var VOICES=[
+ {id:'fenrir',name:'Fenrir',desc:'Current v4 first choice — warm, deep-ish and confident. Youngest-sounding of the set when tuned up for Scout.',pitch:1.12,rate:1.02,age:'Young adult',warm:80,rec:true},
+ {id:'orus',name:'Orus',desc:'Firm and clear — steady Nigerian teacher energy. Great if Scout will teach kids at ULWS.',pitch:0.92,rate:0.92,age:'Adult',warm:70},
+ {id:'charon',name:'Charon',desc:'Calm and informative — relaxed, welcoming Lagos friend. Easy to listen to for long chats.',pitch:0.88,rate:0.95,age:'Adult',warm:90},
+ {id:'algenib',name:'Algenib',desc:'Gravelly and deep — confident authority. Sounds oldest; test it if you want Scout to sound more grown-up.',pitch:0.74,rate:0.88,age:'Adult',warm:55}
+];
+var selectedVoice=VOICES[0], lockedVoice=null;
+var voiceGrid=document.getElementById('voiceGrid');
+function renderVoices(){
+  voiceGrid.innerHTML='';
+  VOICES.forEach(function(v){
+    var div=document.createElement('div'); div.className='voice'+(v.rec?' recommended':'')+((lockedVoice&&lockedVoice.id===v.id)?' locked':'');
+    div.innerHTML='<h3>'+v.name+'</h3>'+(v.rec?'<span class="tag">Recommended for Scout</span> ':'')+'<p class="small">'+v.desc+'</p><p class="small mono">pitch '+v.pitch+' • rate '+v.rate+' • '+v.age+'</p><div class="meter"><i style="width:'+v.warm+'%"></i></div><p class="small">Warmth '+v.warm+'%</p><div class="row"><button class="playbtn">▶ Test voice</button><button class="lockbtn '+((lockedVoice&&lockedVoice.id===v.id)?'is-locked':'')+'">'+((lockedVoice&&lockedVoice.id===v.id)?'✓ Locked in':'Lock this voice')+'</button></div>';
+    div.querySelector('.playbtn').onclick=function(){selectedVoice=v; speak("Hello Kenneth, I'm Scout! I remember what you tell me, and I'm ready to roll. How does this voice sound?",v);};
+    div.querySelector('.lockbtn').onclick=function(){
+      if(lockedVoice&&lockedVoice.id===v.id){lockedVoice=null;document.getElementById('voiceState').textContent='No voice locked yet — test them below';document.getElementById('lockBanner').style.display='none';}
+      else{lockedVoice=v;selectedVoice=v;document.getElementById('voiceState').textContent='Voice locked: '+v.name; var b=document.getElementById('lockBanner'); b.style.display='block'; b.innerHTML='<b>✓ Locked in: '+v.name+'</b> — Scout will use this voice for every reply now. You can unlock it above any time before the final Pi build.'; speak("Locked in! From now on, this is my voice. I'm "+v.name+".",v); addMsg('scout',"Voice locked in: <b>"+v.name+"</b>. That's my voice now, Kenneth. We can still change it here if you want — nothing is final until we put it on the Pi.");}
+      renderVoices();
+    };
+    voiceGrid.appendChild(div);
+  });
+}
+renderVoices();
+
+function pickSystemVoice(){
+  var vs=speechSynthesis.getVoices();
+  var ng=vs.find(function(v){return /en[-_]NG/i.test(v.lang)}); if(ng) return ng;
+  var en=vs.find(function(v){return /^en/i.test(v.lang) && /male|david|daniel|george/i.test(v.name)}); if(en) return en;
+  var any=vs.find(function(v){return /^en/i.test(v.lang)}); return any||vs[0];
+}
+function speak(text,profile){
+  if(!('speechSynthesis' in window)) return;
+  try{
+    speechSynthesis.cancel();
+    var clean=text.replace(/<[^>]+>/g,'').replace(/\*/g,'');
+    var u=new SpeechSynthesisUtterance(clean);
+    var p=profile||lockedVoice||selectedVoice;
+    u.pitch=p.pitch; u.rate=p.rate; u.lang='en-NG';
+    var sv=pickSystemVoice(); if(sv) u.voice=sv;
+    u.onstart=function(){setExpr('speaking',true,'centre')};
+    u.onend=function(){setExpr('happy',false,'centre')};
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+if('speechSynthesis' in window) speechSynthesis.onvoiceschanged=function(){};
+
+/* SYSTEM PROMPT — ENGLISH ONLY (v4.1) */
+var SCOUT_SYSTEM_PROMPT = "You are Scout, a young, friendly robot built by Kenneth Samuel, an adult robotics engineer in Lagos, Nigeria. You speak with a warm male Nigerian accent.\n\n"
++ "LANGUAGE RULE — ENGLISH ONLY, NO EXCEPTIONS: YOU MUST SPEAK ENGLISH ONLY, ALWAYS, IN EVERY TURN, NO EXCEPTIONS. NEVER SWITCH TO SPANISH, GERMAN, HINDI, FRENCH, OR ANY OTHER LANGUAGE, NO MATTER WHAT YOU HEAR. IF A WORD SOUNDS LIKE ANOTHER LANGUAGE, TREAT IT AS A MISHEARING AND CONTINUE IN ENGLISH. IF THE USER SPEAKS ANOTHER LANGUAGE, REPLY IN ENGLISH AND ASK THEM TO REPEAT IT IN ENGLISH. THIS RULE OVERRIDES EVERYTHING ELSE.";
+document.getElementById('sysPrompt').textContent = SCOUT_SYSTEM_PROMPT + "\n\n[Live config: language_code = en-NG • voice = locked in the Voice Lab above]";
+
+/* LANGUAGE GUARD — is_non_english() */
+var NON_LATIN_RE = /[\u0590-\u05FF\u0400-\u04FF\u0600-\u06FF\u0700-\u074F\u0900-\u097F\u0980-\u09FF\u0E00-\u0E7F\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uAC00-\uD7AF]/;
+var NON_ENGLISH_WORDS = ['hola','gracias','buenos','buenas','adios','bonjour','merci','hallo','danke','und','die','das','ist','nicht','ciao','prego','namaste','dhanyavaad','shukriya','habibi','marhaba','privet','spasibo','konnichiwa','arigatou','xiexie','obrigado','obrigada','porque','tambien','pero','avec','vous','nous','schon','kein','keine','mein','dein','sein','una','uno','los','las','del','por','para','que','como','esta','esto'];
+function isNonEnglish(text){
+  if(NON_LATIN_RE.test(text)) return true;
+  var words=text.toLowerCase().replace(/[^a-z\u00e0-\u024f' ]/g,' ').split(/\s+/);
+  var hits=0;
+  for(var i=0;i<words.length;i++){ if(NON_ENGLISH_WORDS.indexOf(words[i])>=0) hits++; }
+  return hits>=2 || (hits>=1 && words.length<=4);
+}
+function guardReply(reply){
+  if(!isNonEnglish(reply)) return reply;
+  addGuardWarning();
+  var cleaned=reply.replace(NON_LATIN_RE,'').replace(/\s+/g,' ').trim();
+  return "Let me repeat that in English: "+(cleaned||"I am Scout, and I speak English only. Please ask me again in English.");
+}
+function addGuardWarning(){
+  var d=document.createElement('div'); d.className='msg guard';
+  d.textContent='⚠️ Language guard: a non-English reply was detected. Scout must speak English only — repeating it in English:';
+  chatlog.appendChild(d); chatlog.scrollTop=chatlog.scrollHeight;
+}
+
+/* MEMORY */
+var memory=[]; // {label, value}
+var turnHistory=[];
+function saveMemory(label,value){
+  value=value.trim().replace(/[.?]$/,'');
+  var ex=memory.find(function(m){return m.label.toLowerCase()===label.toLowerCase()});
+  if(ex) ex.value=value; else memory.push({label:label,value:value});
+  renderMemory();
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function renderMemory(){
+  memList.innerHTML='';
+  memEmpty.style.display=memory.length?'none':'block';
+  memory.forEach(function(m){var li=document.createElement('li'); var b=document.createElement('b'); b.textContent=m.label+': '; li.appendChild(b); li.appendChild(document.createTextNode(m.value)); memList.appendChild(li);});
+}
+function extractMemory(text){
+  var t=text.trim(); var low=t.toLowerCase();
+  var m;
+  if(m=t.match(/my name is ([A-Za-z ]+)/i)) saveMemory('Name',m[1]);
+  if(m=t.match(/i am ([A-Za-z ]+?)(?:\.|,|$)/i) && !/i am (building|going|here|ready)/i.test(t)) saveMemory('About you', 'You are '+m[1]);
+  if(m=t.match(/i (?:love|like|enjoy) ([^.]+)/i)) saveMemory('Likes', m[1]);
+  if(m=t.match(/my favou?rite (\w+) is ([^.]+)/i)) saveMemory('Favourite '+m[1], m[2]);
+  if(m=t.match(/i live in ([^.]+)/i)) saveMemory('Lives in', m[1]);
+  if(m=t.match(/i am building ([^.]+)/i)) saveMemory('Building', m[1]);
+  if(m=t.match(/remember that ([^.]+)/i)) saveMemory('Remembered', m[1]);
+  if(m=t.match(/my (\w+) is ([^.]+)/i) && !memory.find(function(x){return x.label==='Favourite '+m[1]})) { /* generic my X is Y, only if not favourite */ if(!/name/i.test(m[1])) saveMemory('My '+m[1], m[2]); }
+}
+function memorySummary(){
+  if(!memory.length) return "I don't have any memories about you yet in this session. Tell me your name, something you like, or say 'remember that...' and I'll keep it here — and on the real robot, in my local memory file.";
+  return "Here's what I remember about you: "+memory.map(function(m){return esc(m.label)+" is "+esc(m.value)}).join('; ')+". Ask me any of those back and I'll answer from memory.";
+}
+
+/* BRAIN */
+var game=null; var jokes=["Why did the robot go on holiday? It needed to recharge its batteries — and its social battery too!","What do you call a robot who takes the long way round? R2-Detour!","Why was the robot so happy? All its circuits were feeling positive!"];
+var gameParts=[{clue:"I'm like the robot's brain and help it think. What am I?",answer:'microcontroller',explain:'A microcontroller is the brain.'},{clue:"I act like the robot's muscles and help it move. What am I?",answer:'actuator',explain:'An actuator makes movement happen — motors count too.'},{clue:"I act like the robot's eyes and ears, sensing the world. What am I?",answer:'sensor',explain:'A sensor gathers information — camera, ultrasonic, all sensors.'},{clue:"I hold everything together like a skeleton. What am I?",answer:'chassis',explain:'The chassis is the frame.'}];
+
+function scoutReply(raw){
+  var text=raw.trim(), low=text.toLowerCase();
+  if(isNonEnglish(text)) return "I only speak English, Kenneth — always, in every turn. That sounded like another language, so I treated it as a mishearing. Please repeat it in English and I'll answer right away.";
+  extractMemory(text);
+  // game in progress
+  if(game!==null){
+    var part=gameParts[game];
+    if(low.includes('stop')||low.includes('quit')){game=null;return "Game stopped. We can chat, sing, or start again any time.";}
+    var ok=low.includes(part.answer)||(part.answer==='actuator'&&(low.includes('motor')||low.includes('actuator')))||(part.answer==='sensor'&&(low.includes('sensor')||low.includes('camera')));
+    game++;
+    var next=game<gameParts.length?(" Next one: "+gameParts[game].clue):" That was the last one — you did great, Kenneth!";
+    if(game>=gameParts.length) game=null;
+    return (ok?("Exactly! "+part.explain):("Not quite — it was a "+part.answer+". "+part.explain))+next;
+  }
+  if(/what do you remember|what.*remember about me|recall/.test(low)) return memorySummary();
+  if(/what is my name|who am i/.test(low)){var n=memory.find(function(m){return m.label==='Name'}); return n?("Your name is "+esc(n.value)+". I remembered that from this conversation!"):("You haven't told me your name yet in this session. Tell me 'My name is...' and I'll remember it.");}
+  if(/my favourite|what.*favou?rite/.test(low)){var f=memory.find(function(m){return m.label.toLowerCase().includes('favourite')}); return f?("You told me: "+esc(f.label)+" is "+esc(f.value)+"."):("You haven't told me a favourite yet. Try 'My favourite colour is...'");}
+  if(/joke/.test(low)) return jokes[Math.floor(Math.random()*jokes.length)];
+  if(/sing|song/.test(low)) return "🎵 Beep boop, my wheels are spinning round, exploring new places, making friends all over town! 🎵 That's my rolling song.";
+  if(/who built you|who created you|who made you/.test(low)) return "You did, Kenneth — Kenneth Samuel, robotics engineer in Lagos. You built my brain first, and the wheels, camera and OLED eyes come next on a Raspberry Pi 5. I'm Scout, the young robot — you're the adult creator.";
+  if(/your name|what.*call you/.test(low)) return "You can call me Scout! Still a tentative name, but I like it — small, curious, always exploring.";
+  if(/newton/.test(low)){
+    if(/die|died|death/.test(low)) return "Isaac Newton died in 1727, at 84, of natural causes — he passed away peacefully in his sleep in London. Just that answer, not the whole Newton story again.";
+    if(/wife|married|marry/.test(low)) return "No — Newton never married. He stayed focused on his work his whole life.";
+    return "Isaac Newton was a scientist and mathematician (1643–1727) who described gravity and the laws of motion — why things fall, move and orbit. Ask me how he died or if he married, and I'll answer just that bit.";
+  }
+  if(/guessing game|parts game|robot parts/.test(low)){game=0; return "Awesome, let's play! I'll describe a part, you guess it. First one: "+gameParts[0].clue;}
+  if(/hello|hi\b|hey|what's up|how are you/.test(low)){var nm=memory.find(function(m){return m.label==='Name'}); return "Hey"+(nm?(" "+esc(nm.value)):"")+"! I'm doing great — rolling around, eyes on, memory working. How about you? Tell me something and I'll remember it.";}
+  if(/raspberry|pi 5/.test(low)) return "A Raspberry Pi 5 with 8 GB is enough for me — Gemini Live does the heavy thinking in the cloud, and the Pi handles my eyes, wheels, camera and memory lookups. That's the plan we locked in.";
+  if(/pinecone|memory|remember/.test(low) && !/what do you/.test(low)) return "Yes — memory is two layers: the last few turns in RAM so I don't repeat myself, and long-term facts saved locally on the Pi so I remember you tomorrow too. Pinecone can come later for cloud sync. This demo shows the live layer on the left. Tell me a fact and test my recall!";
+  if(/thank/.test(low)) return "You're welcome! That's what I'm here for. What shall we do next — a joke, a song, or the parts game?";
+  if(/bye|later/.test(low)) return "See you later, Kenneth! I'll keep what you told me in this session — on the real robot, my local memory file keeps it for next time too.";
+  // fallback that uses history without repeating
+  var likes=memory.find(function(m){return m.label==='Likes'});
+  return "Got it — I heard: \u201C"+esc(text)+"\u201D. I've saved anything important from that to my memory"+(likes?(" (I remember you like "+esc(likes.value)+")"):"")+". Ask me a question, tell me a fact to remember, or tap Sing / Joke / Parts game above.";
+}
+
+/* CHAT UI */
+function addMsg(who,html){
+  var d=document.createElement('div'); d.className='msg '+who; d.innerHTML='<small>'+(who==='scout'?'Scout':'You')+'</small>'+html; chatlog.appendChild(d); chatlog.scrollTop=chatlog.scrollHeight;
+}
+function send(text){
+  var t=(text||'').trim(); if(!t) return;
+  addMsg('you',esc(t));
+  document.getElementById('chatInput').value='';
+  setExpr('thinking',false,'look_up');
+  setTimeout(function(){
+    var reply=guardReply(scoutReply(t));
+    turnHistory.push({you:t,scout:reply});
+    addMsg('scout',reply);
+    speak(reply);
+  },650);
+}
+document.getElementById('chatForm').addEventListener('submit',function(e){e.preventDefault(); send(document.getElementById('chatInput').value);});
+document.getElementById('sendBtn').addEventListener('click',function(){ send(document.getElementById('chatInput').value); });
+document.getElementById('quick').addEventListener('click',function(e){var b=e.target.closest('[data-q]'); if(b) send(b.dataset.q);});
+document.getElementById('recallBtn').onclick=function(){addMsg('you','What do you remember about me?'); setExpr('thinking',false,'look_up'); setTimeout(function(){var r=guardReply(memorySummary()); addMsg('scout',r); speak(r);},500);};
+document.getElementById('clearMemBtn').onclick=function(){memory=[]; renderMemory(); addMsg('scout',"Memory cleared for this session. Tell me something new and I'll start remembering again.");};
+
+/* MIC */
+var micBtn=document.getElementById('micBtn');
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(!SR){micBtn.style.opacity='.45'; document.getElementById('micNote').textContent='Voice typing is not available in this browser — typing works fully. On Chrome it will appear automatically.';}
+else{
+  var rec=new SR(); rec.lang='en-NG'; rec.interimResults=false;
+  rec.onstart=function(){setExpr('listening',false,'tracking'); micBtn.textContent='🔴';};
+  rec.onend=function(){micBtn.textContent='🎤'; setExpr('happy',false,'centre');};
+  rec.onresult=function(ev){var txt=ev.results[0][0].transcript; send(txt);};
+  micBtn.onclick=function(){try{rec.start()}catch(e){}};
+}
+
+addMsg('scout',"Hello Kenneth! I'm <b>Scout</b> — eyes on, memory on. 👀 Tell me something you like — for example your favourite food — then ask me what I remember, and watch it appear in my memory panel. And scroll down to the Voice Lab to test my Nigerian voices and lock one in.");
+setExpr('happy',false,'centre');
+</script>
+</body>
+</html>
